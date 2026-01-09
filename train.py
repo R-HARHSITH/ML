@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_squared_error, r2_score
 import joblib
 import json
@@ -15,22 +15,25 @@ os.makedirs("outputs/results", exist_ok=True)
 # Load dataset
 data = pd.read_csv("dataset/winequality-red.csv", sep=";")
 
-# Feature selection
-X = data.drop("quality", axis=1)
+# Feature selection (correlation-based)
+corr = data.corr()["quality"].abs().sort_values(ascending=False)
+selected_features = corr[corr > 0.2].index.drop("quality")
+
+X = data[selected_features]
 y = data["quality"]
 
-# Train-test split
+# Train-test split (80/20)
 X_train, X_test, y_train, y_test = train_test_split(
     X, y, test_size=0.2, random_state=42
 )
 
-# Preprocessing
+# Standardization
 scaler = StandardScaler()
 X_train = scaler.fit_transform(X_train)
 X_test = scaler.transform(X_test)
 
-# Train model
-model = LinearRegression()
+# Train Ridge Regression model
+model = Ridge(alpha=1.0)
 model.fit(X_train, y_train)
 
 # Predictions
@@ -40,18 +43,25 @@ y_pred = model.predict(X_test)
 mse = mean_squared_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 
-# Print metrics
-print(f"MSE: {mse}")
-print(f"R2 Score: {r2}")
+# Print experiment summary
+print("EXP-02: Ridge Regression with Standardization + Correlation-Based Feature Selection")
+print("Model           : Ridge Regression")
+print("Hyperparameters : alpha=1.0")
+print("Preprocessing   : Standardization (StandardScaler)")
+print(f"Feature Select  : Correlation-based (threshold > 0.2) -> {list(selected_features)}")
+print("Train/Test Split: 80/20")
+print(f"Mean Squared Error (MSE): {mse:.4f}")
+print(f"R² Score              : {r2:.4f}")
 
 # Save model
-joblib.dump(model, "outputs/model/model.pkl")
+joblib.dump(model, "outputs/model/ridge_model.pkl")
 
 # Save metrics
 metrics = {
     "MSE": mse,
-    "R2_Score": r2
+    "R2_Score": r2,
+    "Selected_Features": list(selected_features)
 }
 
-with open("outputs/results/metrics.json", "w") as f:
+with open("outputs/results/ridge_metrics.json", "w") as f:
     json.dump(metrics, f, indent=4)
