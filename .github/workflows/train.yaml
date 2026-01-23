@@ -157,9 +157,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/ml-model:latest .
-
-      - name: Push Docker image
-        run: |
+          # push docker image
           docker push ${{ secrets.DOCKERHUB_USERNAME }}/ml-model:latest
 
       # -------- Update GitHub Variables --------
