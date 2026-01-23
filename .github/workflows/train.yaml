@@ -100,7 +100,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: trained-model
-          path: ${{ env.MODEL_DIR }}/  # upload folder, not single file
+          path: ${{ env.MODEL_DIR }}/  # upload folder
 
       - name: Upload Metrics Artifact
         uses: actions/upload-artifact@v4
@@ -114,7 +114,7 @@ jobs:
   deploy:
     name: Deploy Model
     runs-on: ubuntu-latest
-    needs: train          # Runs only if train job succeeds
+    needs: train
     environment: production
 
     steps:
@@ -153,18 +153,30 @@ jobs:
           fi
 
       # --------------------------
-      # Build and Push Docker Image if Metric Improved
+      # Log in to Docker Hub
       # --------------------------
-      - name: Build and Push Docker Image
+      - name: Log in to Docker Hub
         if: env.METRIC_IMPROVED == 'true'
-        uses: docker/build-push-action@v4
+        uses: docker/login-action@v2
         with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ env.DOCKER_IMAGE }}
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # --------------------------
+      # Build Docker Image
+      # --------------------------
+      - name: Build Docker Image
+        if: env.METRIC_IMPROVED == 'true'
+        run: |
+          docker build -t ${{ env.DOCKER_IMAGE }} .
+
+      # --------------------------
+      # Push Docker Image
+      # --------------------------
+      - name: Push Docker Image
+        if: env.METRIC_IMPROVED == 'true'
+        run: |
+          docker push ${{ env.DOCKER_IMAGE }}
 
       # --------------------------
       # Update BEST_F1 GitHub Variable
