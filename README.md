@@ -22,7 +22,7 @@ R-HARHSITH/
 └── README.md
 ```
 
-## ML Pipeline Steps
+## ML Pipeline Steps for wine quality prediction
 1. **Data Collection**: Gather and store your data in a suitable format.
 
 2. **Data Preprocessing**: Use the `data_preprocessing.py` script to clean and prepare your data.
@@ -30,6 +30,7 @@ R-HARHSITH/
 
 3. **Model Training**: Train your model using the `train_model.py` script.
    - Ensure you have the right ML algorithm as per your use case.
+   - Algorithm used is Random Forest Regressor
 
 4. **Model Evaluation**: Evaluate the model performance using metrics defined in `evaluate_model.py`.
    - Consider performance metrics like accuracy, precision, recall, etc.
